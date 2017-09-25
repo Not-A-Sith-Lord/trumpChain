@@ -5,9 +5,10 @@ const logger       = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser   = require('body-parser');
 const layouts      = require('express-ejs-layouts');
-
+const mongoose       = require('mongoose');
 
 const app = express();
+mongoose.connect('mongodb://localhost/trumpChain');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -24,6 +25,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(layouts);
+
+
+
+
 
 const index = require('./routes/index');
 app.use('/', index);
