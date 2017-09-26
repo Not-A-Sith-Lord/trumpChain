@@ -15,6 +15,7 @@ router.get('/', (req, res, next) => {
 
   //This will hold the new tweets yet to be encoded
   const memArray = [];
+  const overflow = [];
 
   //List of last tweets which were added to memArray
   const LastTweet = require('../models/lastTweet.js');
@@ -48,7 +49,7 @@ router.get('/', (req, res, next) => {
   for (const [index, tweet] of parsedTweets.entries()) {
 
     //if the tweet has already been encoded
-    if (tweet.id_str === "912301271817838593"){
+    if (tweet.id_str === lastTweetId){
       doneLooping = true;
       newLastTweetId = parsedTweets[0].id_str;
 
@@ -72,15 +73,29 @@ router.get('/', (req, res, next) => {
 
     // ELSE These are tweets that will be pushed to encode prep
     if (!doneLooping) {
-    memArray.push({
-      text: tweet.text,
-      createdAt: tweet.created_at
-    })
+
+      //Will control the cut off point, and trigger to encode the memArray into blockchain
+      const txSize = 10;
+
+      if (memArray.length > txSize) {
+        overflow.push({
+          text: tweet.text,
+          createdAt: tweet.created_at
+        });
+      } else {
+        memArray.push({
+          text: tweet.text,
+          createdAt: tweet.created_at
+        });
+      }
+
+
   }
 
   };
 console.log("MEM ARRAY: " + memArray);
   //End of looping, memArray now populated and ready to encode
+  //Extra tweets are backed up in overflow array
 
 
 
