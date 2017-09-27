@@ -30,8 +30,12 @@ app.use(layouts);
 
 
 
-const index = require('./routes/tierion');
-app.use('/', index);
+const tweets = require('./routes/tweetRetrieval');
+app.use('/', tweets);
+
+const tierion = require('./routes/tierion');
+app.use('/', tierion);
+
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
