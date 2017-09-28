@@ -8,7 +8,7 @@ const layouts      = require('express-ejs-layouts');
 const mongoose       = require('mongoose');
 
 const app = express();
-mongoose.connect('mongodb://localhost/trumpChain');
+mongoose.createConnection('mongodb://localhost/trumpChain');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -26,7 +26,9 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(layouts);
 
-
+//twitter
+const twitter = require('./twitter/twitter.js');
+twitter();//Start
 
 
 
