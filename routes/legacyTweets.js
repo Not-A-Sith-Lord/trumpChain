@@ -5,8 +5,8 @@ const tweetRecord = require('../models/tweetRecord');
 
 const hashclient = require('hashapi-lib-node');
 //DANGER TOKENS:
-var access_token = "";
-var refresh_token = '';
+var access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjU5Y2FiZmE0MWFiM2FlMjliNzk5YzNkYiIsInJscyI6MTAwLCJybGgiOjEwMDAsImlzQWRtaW4iOmZhbHNlLCJpYXQiOjE1MDY0NjM1NjIsImV4cCI6MTUwNjQ2NzE2MiwianRpIjoiMWQ4YjVkNmI5YjdmNDVmZTc0YTJkYTY4MGQ2Y2U1ODJkMDcyZjU4NyJ9.PxQwHYfIbN9PuDrSziJY1uKYjOdGZnQ37JXp4K9MVew";
+var refresh_token = 'b18d914f8b3a6753e57e2eabb1c819da5ccfee6d';
 var hashClient = new hashclient(access_token, refresh_token);
 
 //This is to change the payload domain after each block, or tierion gives you an error
@@ -28,11 +28,19 @@ router.get('/submit', (req,res,next) => {
   //This is what you need and how to combine it to verify the hash later
   //I think we just need text and exact twitter time, and hash that like so:
 
-  var input = {
-    text: 'Ariel Deschapell',
-    created_at: 'Mon Sep 27 15:28:02 +0000 2017'
-} //example
+  // var input = {
+//     text: 'Ariel Deschapell',
+//     created_at: 'Mon Sep 27 15:28:02 +0000 2017'
+// } //example
 
+  var input = "Kinky Kiki";
+var data = require("../parsedTweets/condensed_2017.json");
+  data.forEach(tweet => {
+    var input = {
+      text: tweet.text,
+      created_at: tweet.created_at
+    }
+    console.log("INPUT" + input);
 
   var convertedInput = JSON.stringify(input);
   // console.log(typeof convertedInput);
@@ -42,14 +50,16 @@ router.get('/submit', (req,res,next) => {
   // console.log('hash = ', hash);
 
 
-
+console.log("HASH" + hash);
   hashClient.submitHashItem(hash, (err, result) =>{
     if(err) {
-        console.log("Error in submit hash item: ");
+        console.log("---Error in submit hash item:----- ");
         console.log(err);
         return next(err);
+
     } else {
-      console.log("Hash item accepted for encoding");
+
+      console.log("-------Hash item accepted for encoding-----");
 
       //save the original content with blockchain receipt id to retrieve later
       const newPendingReceipt = new pendingReceipt({
@@ -106,7 +116,7 @@ router.get('/submit', (req,res,next) => {
     }
   });
 
-
+  })
 
 });
 
