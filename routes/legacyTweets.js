@@ -28,11 +28,19 @@ router.get('/submit', (req,res,next) => {
   //This is what you need and how to combine it to verify the hash later
   //I think we just need text and exact twitter time, and hash that like so:
 
-  var input = {
-    text: 'Ariel Deschapell',
-    created_at: 'Mon Sep 27 15:28:02 +0000 2017'
-} //example
+  // var input = {
+//     text: 'Ariel Deschapell',
+//     created_at: 'Mon Sep 27 15:28:02 +0000 2017'
+// } //example
 
+  var input = "Kinky Kiki";
+var data = require("../parsedTweets/condensed_2017.json");
+  data.forEach(tweet => {
+    var input = {
+      text: tweet.text,
+      created_at: tweet.created_at
+    }
+    console.log("INPUT" + input);
 
   var convertedInput = JSON.stringify(input);
   // console.log(typeof convertedInput);
@@ -42,14 +50,16 @@ router.get('/submit', (req,res,next) => {
   // console.log('hash = ', hash);
 
 
-
+console.log("HASH" + hash);
   hashClient.submitHashItem(hash, (err, result) =>{
     if(err) {
-        console.log("Error in submit hash item: ");
+        console.log("---Error in submit hash item:----- ");
         console.log(err);
         return next(err);
+
     } else {
-      console.log("Hash item accepted for encoding");
+
+      console.log("-------Hash item accepted for encoding-----");
 
       //save the original content with blockchain receipt id to retrieve later
       const newPendingReceipt = new pendingReceipt({
@@ -106,7 +116,7 @@ router.get('/submit', (req,res,next) => {
     }
   });
 
-
+  })
 
 });
 

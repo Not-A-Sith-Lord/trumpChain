@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const tweetRecordSchema = new Schema({
-  originalContent: Object,
+  originalContent: String,
   receipt: Object
 });
 
