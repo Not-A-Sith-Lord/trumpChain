@@ -5,8 +5,13 @@ const tweetRecord = require('../models/tweetRecord');
 
 const hashclient = require('hashapi-lib-node');
 //DANGER TOKENS:
+<<<<<<< HEAD
 var access_token = "";
 var refresh_token = '';
+=======
+var access_token = "";
+var refresh_token = '';
+>>>>>>> 6832051144fc36167fc612c08738dee1e5bc7a37
 var hashClient = new hashclient(access_token, refresh_token);
 
 //This is to change the payload domain after each block, or tierion gives you an error
