@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const pendingReceipt = require('../models/pendingReceipt');
 const tweetRecord = require('../models/tweetRecord');
-const async = require('async');
 
 const hashclient = require('hashapi-lib-node');
 //DANGER TOKENS:
@@ -20,7 +19,7 @@ var destId = "";
 const axios = require('axios');
 const sha256 = require('sha256');
 
-router.get('/submit', (req,res,next) => {
+router.get('/legacy', (req,res,next) => {
 
   //The tweet info we want to encode will be the input for the function, which is this whole route.
   //We hash the input for the API while also saving it to later include with the blockchain Receipt
@@ -29,11 +28,23 @@ router.get('/submit', (req,res,next) => {
   //This is what you need and how to combine it to verify the hash later
   //I think we just need text and exact twitter time, and hash that like so:
 
-  var input = {
-    text: 'Ariel Deschapell',
-    created_at: 'Mon Sep 27 15:28:02 +0000 2017'
-} //example
+  // var input = {
+//     text: 'Ariel Deschapell',
+//     created_at: 'Mon Sep 27 15:28:02 +0000 2017'
+// } //example
 
+
+var data = require("../parsedTweets/test.json");
+var data2 = require("../parsedTweets/condensed_2017.json");
+console.log(data2.length);
+
+  data.forEach(tweet => {
+    var input = {
+      text: tweet.text,
+      created_at: tweet.created_at
+    }
+    console.log("INPUT");
+    console.log(input);
 
   var convertedInput = JSON.stringify(input);
   // console.log(typeof convertedInput);
@@ -44,62 +55,70 @@ router.get('/submit', (req,res,next) => {
 
 
 
+
+
+console.log("HASH: " + hash);
   hashClient.submitHashItem(hash, (err, result) =>{
     if(err) {
-        console.log("Error in submit hash item: ");
+        console.log("----Error in submit hash item:----- ");
         console.log(err);
         return next(err);
+
     } else {
-      console.log("Hash item accepted for encoding");
+
+      console.log("-------Hash item accepted for encoding-----");
 
       //save the original content with blockchain receipt id to retrieve later
       const newPendingReceipt = new pendingReceipt({
         originalContent: input,
         receiptId: result.receiptId
       });
-
-      //This doesn't have to be async i think?
+      console.log("NEW PENDING RECEIPT")
+      console.log(newPendingReceipt);
       newPendingReceipt.save((err, result) => {
         if (err) return next(err);
          console.log("New pending receipt saved");
+         //<<<<<<<<<<So we have a receipt we're waiting for, so now we create a blocksub so
+         //We know when we can retrieve the receipt>>>>>>>>>>>>>>>>
+
+
+         //If this is true, then change the payload for the blocksub. Just has to be unique per block so I used the latest returned id.
+         if (resetBlockSub){
+           destId = result.receiptId;
+           resetblockSub = false;
+         }
+
+         //Just used this site for manual testing, will ultimatly be /check/:id route
+         var parameters = {
+           "callbackUrl":  root + "http://mockbin.org/bin/a79679e6-3771-4ad8-b340-bb12d3865b4f" + destId ,
+     "label": "Production"
+         }
+
+
+        //if "resetBlockSub" is false it means the tweet is in the same block as
+        //the one before and the payload url doesn't change. Create block returns an error
+        //but that's not a biggy, we can optimize later.
+
+  //        hashClient.createBlockSubscription(parameters, (err, result) =>{
+  //      if(err) {
+  //          console.log("Error in create block subscription: ");
+  //          console.log(err);
+   //
+  //          return next(err);
+  //      } else {
+  //          console.log(result);
+   //
+  //          //If it's all good it's all good then it's all good
+  //          res.render('index');
+  //      }
+  //  });
+
+
+
 
 
       });
 
-      //<<<<<<<<<<So we have a receipt we're waiting for, so now we create a blocksub so
-      //We know when we can retrieve the receipt>>>>>>>>>>>>>>>>
-
-
-      //If this is true, then change the payload for the blocksub. Just has to be unique per block so I used the latest returned id.
-      if (resetBlockSub){
-        destId = result.receiptId;
-        resetblockSub = false;
-      }
-
-      //Just used this site for manual testing, will ultimatly be /check/:id route
-      var parameters = {
-        "callbackUrl":  root + "http://mockbin.org/bin/a79679e6-3771-4ad8-b340-bb12d3865b4f" + destId ,
-  "label": "Production"
-      }
-
-
-     //if "resetBlockSub" is false it means the tweet is in the same block as
-     //the one before and the payload url doesn't change. Create block returns an error
-     //but that's not a biggy, we can optimize later.
-
-      hashClient.createBlockSubscription(parameters, (err, result) =>{
-    if(err) {
-        console.log("Error in create block subscription: ");
-        console.log(err);
-
-        return next(err);
-    } else {
-        console.log(result);
-
-        //If it's all good it's all good then it's all good
-        res.render('index');
-    }
-});
 
 
 
@@ -107,7 +126,7 @@ router.get('/submit', (req,res,next) => {
     }
   });
 
-
+  })
 
 });
 
@@ -126,10 +145,8 @@ router.get(`/check/:id`, (req,res,next) => {
   pendingReceipt.find((err, results) => {
     // console.log(results);
 
-    async.eachSeries(results, iteratee, doAfter);
-
       //Go through each pending receipt
-    function iteratee(result, callback) {
+      results.forEach((result) => {
 
         //Ask for receipt by id
         hashClient.getReceipt(result.receiptId, (err, receipt) => {
@@ -162,26 +179,21 @@ router.get(`/check/:id`, (req,res,next) => {
 
             //i think this might be a lil fucked up somehow try and break
             //If the receipt saves ok remove it from pending
-          //   pendingReceipt.findByIdAndRemove(result._id, (err, pend) => {
-          //
-          //     console.log("it was removed!");
-          //     callback();
-          // });
-          callback();
+            pendingReceipt.findByIdAndRemove(result._id, (err, pend) => {
+
+              console.log("it was removed!");
+
+          });
           }
         })
 
       }
       });
-    };
+      });
 
-    function doAfter(err){
-      if(err) console.log(err);
 
-      console.log('Finished iterating')
-      //save to the file
-    }
 
+res.render('index');
   });
 
 })

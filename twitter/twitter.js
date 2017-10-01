@@ -9,6 +9,10 @@ module.exports = () => {
 
   stream.on('tweet', tweet => {
     if(tweet.user.id_str === config.userId ) //Filtering retweets
+      tweet = {
+        created_at: tweet.created_at,
+        text      : tweet.text
+      }
       console.log(tweet);
   });
 }
