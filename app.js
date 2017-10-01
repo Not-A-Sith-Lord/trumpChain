@@ -10,6 +10,7 @@ const mongoose       = require('mongoose');
 const app = express();
 mongoose.createConnection('mongodb://localhost/trumpChain');
 
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -38,6 +39,11 @@ app.use('/', tweets);
 const tierion = require('./routes/tierion');
 app.use('/', tierion);
 
+const legacyRetrieval = require('./routes/legacyTweets');
+app.use('/', legacyRetrieval);
+
+// const legacyExperiment = require('./routes/legacyExperiment');
+// app.use('/', legacyExperiment);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
