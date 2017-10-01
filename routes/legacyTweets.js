@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pendingReceipt = require('../models/pendingReceipt');
 const tweetRecord = require('../models/tweetRecord');
+const async = require('async');
 
 const hashclient = require('hashapi-lib-node');
 //DANGER TOKENS:
@@ -19,7 +20,7 @@ var destId = "";
 const axios = require('axios');
 const sha256 = require('sha256');
 
-router.get('/submit', (req,res,next) => {
+router.get('/legacy', (req,res,next) => {
 
   //The tweet info we want to encode will be the input for the function, which is this whole route.
   //We hash the input for the API while also saving it to later include with the blockchain Receipt
@@ -33,91 +34,98 @@ router.get('/submit', (req,res,next) => {
 //     created_at: 'Mon Sep 27 15:28:02 +0000 2017'
 // } //example
 
-  var input = "Kinky Kiki";
-var data = require("../parsedTweets/condensed_2017.json");
-  data.forEach(tweet => {
+
+var data = require("../parsedTweets/test.json");
+var data2 = require("../parsedTweets/condensed_2017.json");
+console.log(data2.length);
+
+  async.eachSeries(data, iteratee, doAfter);
+
+  function iteratee(tweet, callback){
+    console.log("===== Startted Iteratate")
     var input = {
       text: tweet.text,
       created_at: tweet.created_at
     }
-    console.log("INPUT" + input);
-
-  var convertedInput = JSON.stringify(input);
-  // console.log(typeof convertedInput);
-  // console.log(convertedInput)
-
-  const hash = sha256(convertedInput); //input will go here
-  // console.log('hash = ', hash);
+    console.log("INPUT");
+    console.log(input);
 
 
-console.log("HASH" + hash);
-  hashClient.submitHashItem(hash, (err, result) =>{
-    if(err) {
-        console.log("---Error in submit hash item:----- ");
-        console.log(err);
-        return next(err);
 
-    } else {
+      var convertedInput = JSON.stringify(input);
+    // console.log(typeof convertedInput);
+    // console.log(convertedInput)
 
-      console.log("-------Hash item accepted for encoding-----");
+    const hash = sha256(convertedInput); //input will go here
+    // console.log('hash = ', hash);
 
-      //save the original content with blockchain receipt id to retrieve later
-      const newPendingReceipt = new pendingReceipt({
-        originalContent: input,
-        receiptId: result.receiptId
+    console.log("HASH: " + hash);
+      hashClient.submitHashItem(hash, (err, result) =>{
+        if(err) {
+            console.log("----Error in submit hash item:----- ");
+            console.log(err);
+            return next(err);
+
+        } else {
+
+          console.log("-------Hash item accepted for encoding-----");
+
+          //save the original content with blockchain receipt id to retrieve later
+          const newPendingReceipt = new pendingReceipt({
+            originalContent: input,
+            receiptId: result.receiptId
+          });
+          console.log("NEW PENDING RECEIPT")
+          console.log(newPendingReceipt);
+          newPendingReceipt.save((err, result) => {
+            if (err) return next(err);
+             console.log("New pending receipt saved");
+             //<<<<<<<<<<So we have a receipt we're waiting for, so now we create a blocksub so
+             //We know when we can retrieve the receipt>>>>>>>>>>>>>>>>
+
+             console.log("===== Done Iteratate")
+             callback();
+           });
+
+        }
+
       });
 
-      //This doesn't have to be async i think?
-      newPendingReceipt.save((err, result) => {
-        if (err) return next(err);
-         console.log("New pending receipt saved");
+  }
+
+  function doAfter(){
+
+       //If this is true, then change the payload for the blocksub. Just has to be unique per block so I used the latest returned id.
+       if (resetBlockSub){
+         destId = result.receiptId;
+         resetblockSub = false;
+       }
+
+       //Just used this site for manual testing, will ultimatly be /check/:id route
+       var parameters = {
+           "callbackUrl":  root + "http://mockbin.org/bin/a79679e6-3771-4ad8-b340-bb12d3865b4f" + destId ,
+           "label": "Production"
+       }
 
 
-      });
+      //if "resetBlockSub" is false it means the tweet is in the same block as
+      //the one before and the payload url doesn't change. Create block returns an error
+      //but that's not a biggy, we can optimize later.
 
-      //<<<<<<<<<<So we have a receipt we're waiting for, so now we create a blocksub so
-      //We know when we can retrieve the receipt>>>>>>>>>>>>>>>>
+       hashClient.createBlockSubscription(parameters, (err, result) =>{
+         if(err) {
+           console.log("Error in create block subscription: ");
+           console.log(err);
 
+           return next(err);
+         } else {
+           console.log(result);
 
-      //If this is true, then change the payload for the blocksub. Just has to be unique per block so I used the latest returned id.
-      if (resetBlockSub){
-        destId = result.receiptId;
-        resetblockSub = false;
-      }
-
-      //Just used this site for manual testing, will ultimatly be /check/:id route
-      var parameters = {
-        "callbackUrl":  root + "http://mockbin.org/bin/a79679e6-3771-4ad8-b340-bb12d3865b4f" + destId ,
-  "label": "Production"
-      }
-
-
-     //if "resetBlockSub" is false it means the tweet is in the same block as
-     //the one before and the payload url doesn't change. Create block returns an error
-     //but that's not a biggy, we can optimize later.
-
-      hashClient.createBlockSubscription(parameters, (err, result) =>{
-    if(err) {
-        console.log("Error in create block subscription: ");
-        console.log(err);
-
-        return next(err);
-    } else {
-        console.log(result);
-
-        //If it's all good it's all good then it's all good
-        res.render('index');
-    }
-});
-
-
-
-
-    }
-  });
-
-  })
-
+           //If it's all good it's all good then it's all good
+           res.render('index');
+         }
+       });
+     }
 });
 
 router.get(`/check/:id`, (req,res,next) => {
