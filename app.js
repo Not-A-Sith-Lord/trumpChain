@@ -5,7 +5,7 @@ const logger       = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser   = require('body-parser');
 const layouts      = require('express-ejs-layouts');
-const mongoose       = require('mongoose');
+const mongoose     = require('mongoose');
 
 const app = express();
 mongoose.createConnection('mongodb://localhost/trumpChain');
@@ -15,10 +15,9 @@ mongoose.createConnection('mongodb://localhost/trumpChain');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// default value for title local
-app.locals.title = 'Express - Generated with IronGenerator';
+app.locals.title = 'We The Tweeters';
 
-// uncomment after placing your favicon in /public
+
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -27,23 +26,17 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(layouts);
 
-//twitter
+//Twitter Start
 const twitter = require('./twitter/twitter.js');
-twitter();//Start
+twitter();
 
-
-
-const tweets = require('./routes/tweetRetrieval');
-app.use('/', tweets);
-
+//Blockchain receipts payload destination
 const tierion = require('./routes/tierion');
 app.use('/', tierion);
 
-const legacyRetrieval = require('./routes/legacyTweets');
-app.use('/', legacyRetrieval);
-
-// const legacyExperiment = require('./routes/legacyExperiment');
-// app.use('/', legacyExperiment);
+//Manually trigger legacy download and encoding, subject to tierion API limits
+const legacyTweets = require('./routes/legacyTweets');
+app.use('/', legacyTweets);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
