@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pendingReceipt = require('../models/pendingReceipt');
 const tweetRecord = require('../models/tweetRecord');
+const async = require('async');
 
 const hashclient = require('hashapi-lib-node');
 //DANGER TOKENS:
@@ -125,8 +126,10 @@ router.get(`/check/:id`, (req,res,next) => {
   pendingReceipt.find((err, results) => {
     // console.log(results);
 
+    async.eachSeries(results, iteratee, doAfter);
+
       //Go through each pending receipt
-      results.forEach((result) => {
+    function iteratee(result, callback) {
 
         //Ask for receipt by id
         hashClient.getReceipt(result.receiptId, (err, receipt) => {
@@ -159,21 +162,26 @@ router.get(`/check/:id`, (req,res,next) => {
 
             //i think this might be a lil fucked up somehow try and break
             //If the receipt saves ok remove it from pending
-            pendingReceipt.findByIdAndRemove(result._id, (err, pend) => {
-
-              console.log("it was removed!");
-
-          });
+          //   pendingReceipt.findByIdAndRemove(result._id, (err, pend) => {
+          //
+          //     console.log("it was removed!");
+          //     callback();
+          // });
+          callback();
           }
         })
 
       }
       });
-      });
+    };
 
+    function doAfter(err){
+      if(err) console.log(err);
 
+      console.log('Finished iterating')
+      //save to the file
+    }
 
-res.render('index');
   });
 
 })
