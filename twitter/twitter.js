@@ -1,18 +1,23 @@
 const Twit   = require('twit');
-const config = require('./config.js');
+const config = require('../config.js').twitter;
+const submitNewTwit = require('./submitNewTwit.js');
 
-module.exports = () => {
+var a = module.exports = () => {
   const T = new Twit(config.tokens);//Configure twitter API Client
 
   var stream = T.stream('statuses/filter', { follow: config.userId  });//Create stream
   console.log(`Twitter stream started, following userId = ${config.userId}`);
 
   stream.on('tweet', tweet => {
-    if(tweet.user.id_str === config.userId ) //Filtering retweets
-      tweet = {
-        created_at: tweet.created_at,
-        text      : tweet.text
-      }
-      console.log(tweet);
+    if(tweet.user.id_str === config.userId ) {//Filtering retweets
+      //Filter unnecesery fields
+        tweet = {
+          created_at: tweet.created_at,
+          text      : tweet.text
+        }
+        console.log(`TwitterAPI: Yeah, we got new tweet with text: '${tweet.text}'`);
+        submitNewTwit(tweet);
+    }
+
   });
 }
