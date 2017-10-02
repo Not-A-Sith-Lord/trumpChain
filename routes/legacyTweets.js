@@ -6,8 +6,8 @@ const async = require('async');
 
 const hashclient = require('hashapi-lib-node');
 //DANGER TOKENS:
-var access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjU5Y2FiZmE0MWFiM2FlMjliNzk5YzNkYiIsInJscyI6MTAwLCJybGgiOjEwMDAsImlzQWRtaW4iOmZhbHNlLCJpYXQiOjE1MDY0NjM1NjIsImV4cCI6MTUwNjQ2NzE2MiwianRpIjoiMWQ4YjVkNmI5YjdmNDVmZTc0YTJkYTY4MGQ2Y2U1ODJkMDcyZjU4NyJ9.PxQwHYfIbN9PuDrSziJY1uKYjOdGZnQ37JXp4K9MVew";
-var refresh_token = 'b18d914f8b3a6753e57e2eabb1c819da5ccfee6d';
+var access_token = "";
+var refresh_token = "";
 var hashClient = new hashclient(access_token, refresh_token);
 
 //This is to change the payload domain after each block, or tierion gives you an error
@@ -22,18 +22,8 @@ const sha256 = require('sha256');
 
 router.get('/legacy', (req,res,next) => {
 
-  //The tweet info we want to encode will be the input for the function, which is this whole route.
-  //We hash the input for the API while also saving it to later include with the blockchain Receipt
-
-  //We get to define the input standard for politician's tweets
-  //This is what you need and how to combine it to verify the hash later
-  //I think we just need text and exact twitter time, and hash that like so:
-
-  // var input = {
-//     text: 'Ariel Deschapell',
-//     created_at: 'Mon Sep 27 15:28:02 +0000 2017'
-// } //example
-
+//The tweet info we want to encode will be the input for the function, which is this whole route.
+//We hash the input for the API while also saving it to later include with the blockchain Receipt
 
 var data = require("../parsedTweets/test.json");
 var data2 = require("../parsedTweets/condensed_2017.json");
@@ -95,13 +85,6 @@ console.log(data2.length);
 
   function doAfter(){
 
-       //If this is true, then change the payload for the blocksub. Just has to be unique per block so I used the latest returned id.
-       if (resetBlockSub){
-         destId = result.receiptId;
-         resetblockSub = false;
-       }
-
-       //Just used this site for manual testing, will ultimatly be /check/:id route
        var parameters = {
            "callbackUrl":  root + "http://mockbin.org/bin/a79679e6-3771-4ad8-b340-bb12d3865b4f" + destId ,
            "label": "Production"
