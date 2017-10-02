@@ -3,119 +3,18 @@ const router = express.Router();
 const pendingReceipt = require('../models/pendingReceipt');
 const tweetRecord = require('../models/tweetRecord');
 const async = require('async');
+const fs = require('fs');
+const updateJsonFile = require('update-json-file');
+
+const config = require('../config.js');
 
 const hashclient = require('hashapi-lib-node');
-//DANGER TOKENS:
-var access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjU5Y2FiZmE0MWFiM2FlMjliNzk5YzNkYiIsInJscyI6MTAwLCJybGgiOjEwMDAsImlzQWRtaW4iOmZhbHNlLCJpYXQiOjE1MDY0NjM1NjIsImV4cCI6MTUwNjQ2NzE2MiwianRpIjoiMWQ4YjVkNmI5YjdmNDVmZTc0YTJkYTY4MGQ2Y2U1ODJkMDcyZjU4NyJ9.PxQwHYfIbN9PuDrSziJY1uKYjOdGZnQ37JXp4K9MVew";
-var refresh_token = 'b18d914f8b3a6753e57e2eabb1c819da5ccfee6d';
-var hashClient = new hashclient(access_token, refresh_token);
+const access_token = config.tierion.tokens.access_token;
+const refresh_token = config.tierion.tokens.refresh_token;
+const hashClient = new hashclient(access_token, refresh_token);
 
-//This is to change the payload domain after each block, or tierion gives you an error
-var resetBlockSub = false;
-
-//Payload url info for blockSub. destId is changed by resetBlockSub.
-var root = "";
-var destId = "";
-
-const axios = require('axios');
-const sha256 = require('sha256');
-
-router.get('/submit', (req,res,next) => {
-
-  //The tweet info we want to encode will be the input for the function, which is this whole route.
-  //We hash the input for the API while also saving it to later include with the blockchain Receipt
-
-  //We get to define the input standard for politician's tweets
-  //This is what you need and how to combine it to verify the hash later
-  //I think we just need text and exact twitter time, and hash that like so:
-
-  var input = {
-    text: 'Ariel Deschapell',
-    created_at: 'Mon Sep 27 15:28:02 +0000 2017'
-} //example
-
-
-  var convertedInput = JSON.stringify(input);
-  // console.log(typeof convertedInput);
-  // console.log(convertedInput)
-
-  const hash = sha256(convertedInput); //input will go here
-  // console.log('hash = ', hash);
-
-
-
-  hashClient.submitHashItem(hash, (err, result) =>{
-    if(err) {
-        console.log("Error in submit hash item: ");
-        console.log(err);
-        return next(err);
-    } else {
-      console.log("Hash item accepted for encoding");
-
-      //save the original content with blockchain receipt id to retrieve later
-      const newPendingReceipt = new pendingReceipt({
-        originalContent: input,
-        receiptId: result.receiptId
-      });
-
-      //This doesn't have to be async i think?
-      newPendingReceipt.save((err, result) => {
-        if (err) return next(err);
-         console.log("New pending receipt saved");
-
-
-      });
-
-      //<<<<<<<<<<So we have a receipt we're waiting for, so now we create a blocksub so
-      //We know when we can retrieve the receipt>>>>>>>>>>>>>>>>
-
-
-      //If this is true, then change the payload for the blocksub. Just has to be unique per block so I used the latest returned id.
-      if (resetBlockSub){
-        destId = result.receiptId;
-        resetblockSub = false;
-      }
-
-      //Just used this site for manual testing, will ultimatly be /check/:id route
-      var parameters = {
-        "callbackUrl":  root + "http://mockbin.org/bin/a79679e6-3771-4ad8-b340-bb12d3865b4f" + destId ,
-  "label": "Production"
-      }
-
-
-     //if "resetBlockSub" is false it means the tweet is in the same block as
-     //the one before and the payload url doesn't change. Create block returns an error
-     //but that's not a biggy, we can optimize later.
-
-      hashClient.createBlockSubscription(parameters, (err, result) =>{
-    if(err) {
-        console.log("Error in create block subscription: ");
-        console.log(err);
-
-        return next(err);
-    } else {
-        console.log(result);
-
-        //If it's all good it's all good then it's all good
-        res.render('index');
-    }
-});
-
-
-
-
-    }
-  });
-
-
-
-});
-
-router.get(`/check/:id`, (req,res,next) => {
+router.get(`/check/:random`, (req,res,next) => {
   //Latest block in the blockchain was published
-  //The latest block was published so we need to reset the payload url for the next tweet
-  resetBlockSub = true;
-
 
   //for manually testing
   // idArray = ["59caecaa01647049021fe404","59caecb2b8af0a2f6d757d57","59caecb901647049021fe405"];
@@ -124,68 +23,129 @@ router.get(`/check/:id`, (req,res,next) => {
   //And fetch the receipts to store with the original content on our git and DB
 
   pendingReceipt.find((err, results) => {
-    // console.log(results);
 
-    async.eachSeries(results, iteratee, doAfter);
+    let newTweets = []; //All new tweets
 
-      //Go through each pending receipt
+    async.eachSeries(results, iteratee, doAfter);  //Go through each pending receipt
+
     function iteratee(result, callback) {
 
         //Ask for receipt by id
         hashClient.getReceipt(result.receiptId, (err, receipt) => {
-      if(err) {
-        console.log(err);
-        //There's some kind of preflight header problem here
-        return next(err);
-      } else {
-        console.log("Sucessfully recieved blockchain receipt");
+          if(err) {
+            console.log(err);
+            //There's some kind of preflight header problem here
+            return next(err);
+          } else {
+                console.log("Sucessfully recieved blockchain receipt");
 
 
+            //Now take receipt and save to db and then zip file for repo
+            var newTweetRecord = new tweetRecord({
+              receipt: receipt,
+              originalContent: result.originalContent
+            });
+
+            newTweets.push( result.originalContent );
+
+            //note: mongo applies '/' where all the quotes are in the receipt to escape the character
+            //That has to be parsed out before being pushed to the git repo page
+            newTweetRecord.save((err, newTweet) => {
+              if (err){console.log(err)}
+              else{
+                console.log("it saved!");
 
 
+              // i think this might be a lil fucked up somehow try and break
+              // If the receipt saves ok remove it from pending
+                pendingReceipt.findByIdAndRemove(result._id, (err, pend) => {
+                  if(err) return console.log(err);
 
+                  console.log("it was removed!");
+                  callback();
+              });
+              // callback();
+              }
+            })
 
-        //Now take receipt and save to db and then zip file for repo
-        var newTweetRecord = new tweetRecord({
-          receipt: receipt,
-          originalContent: result.originalContent
-        });
-
-        //note: mongo applies '/' where all the quotes are in the receipt to escape the character
-        //That has to be parsed out before being pushed to the git repo page
-        newTweetRecord.save((err, newTweet) => {
-          if (err){console.log(err)}
-          else{
-            console.log("it saved!");
-
-
-
-            //i think this might be a lil fucked up somehow try and break
-            //If the receipt saves ok remove it from pending
-          //   pendingReceipt.findByIdAndRemove(result._id, (err, pend) => {
-          //
-          //     console.log("it was removed!");
-          //     callback();
-          // });
-          callback();
           }
-        })
-
-      }
       });
     };
 
     function doAfter(err){
       if(err) console.log(err);
 
-      console.log('Finished iterating')
-      //save to the file
+      saveToFile(newTweets);
+
+      //Create new subscription to next block
+      createNewBlockSub();
     }
 
   });
+});
 
-})
 
-module.exports = router;
-//recepeint id
-//59c9d46ae4a70229ae2edb00
+function saveToFile( data ){
+  //data is array of new tweets
+
+  //Generating filePath:
+  const year = new Date().getFullYear(); //Current year
+  const month = new Date().getMonth() + 1; //Current month
+  const filePath = `./tweetResults/tweets-${year}-${month}.json`; //1 file per month
+
+
+  //Create new file if it's not exist
+  if (!fs.existsSync(filePath)) {
+    const startingJSON =  '[]' ; //Simplest JSON for holding array
+
+    fs.writeFileSync(filePath, startingJSON , 'utf8', (err) => {
+      if (err) return console.log(err);
+      console.log(`The file was succesfully created! filePath = ${filePath}`);
+    });
+  }
+
+  //Add all new tweets to JSON file:
+  updateJsonFile(filePath, (data) => {
+    console.log(`Updating file. filePath = '${filePath}'`);
+
+    //Combine old data(in file) with new data(new tweets):
+    data = [ ...data, ...newTweets ];
+    return data
+  });
+}
+
+function createNewBlockSub(){
+  console.log('Creating new block subscription')
+  //Payload url info for blockSub. destId is changed by resetBlockSub.
+  var root = config.tierion.root;
+  var destId = Date.now();
+
+    //Just used this site for manual testing, will ultimatly be /check/:id route
+    var parameters = {
+      "callbackUrl":  root + "http://mockbin.org/bin/a79679e6-3771-4ad8-b340-bb12d3865b4f" + destId ,
+      "label": "Production"
+    }
+
+
+   //if "resetBlockSub" is false it means the tweet is in the same block as
+   //the one before and the payload url doesn't change. Create block returns an error
+   //but that's not a biggy, we can optimize later.
+
+    hashClient.createBlockSubscription(parameters, (err, result) =>{
+        if(err) {
+            console.log("Error in create block subscription: ");
+            console.log(err);
+
+        } else {
+            console.log(result);
+
+            //If it's all good it's all good then it's all good
+            // res.render('index');
+        }
+    });
+}
+
+module.exports = {
+  router: router,
+  createNewBlockSub: createNewBlockSub
+};

@@ -37,7 +37,8 @@ const tweets = require('./routes/tweetRetrieval');
 app.use('/', tweets);
 
 const tierion = require('./routes/tierion');
-app.use('/', tierion);
+app.use('/', tierion.router);
+tierion.createNewBlockSub();
 
 const legacyRetrieval = require('./routes/legacyTweets');
 app.use('/', legacyRetrieval);
