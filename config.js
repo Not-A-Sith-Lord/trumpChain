@@ -7,8 +7,8 @@ module.exports = {
       access_token:         '',
       access_token_secret:  ''
     },
-    userId: '912871553133662208' //TEST account (twitter account ID, will be reading tweets from this user)
-    // userId: '25073877'       //TRUMP account (twitter account ID, will be reading tweets from this user)
+    // userId: '' //TEST account (twitter account ID, will be reading tweets from this user)
+    userId: '25073877'       //TRUMP account (twitter account ID, will be reading tweets from this user)
   },
 
   tierion: {

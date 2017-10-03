@@ -22,58 +22,53 @@ const sha256 = require('sha256');
 
 router.get('/legacy', (req,res,next) => {
 
-//The tweet info we want to encode will be the input for the function, which is this whole route.
-//We hash the input for the API while also saving it to later include with the blockchain Receipt
 
+//To encode legacy tweet data you have to manually link the source in json.
+//And simply trigger this route
 var data = require("../parsedTweets/test.json");
 var data2 = require("../parsedTweets/condensed_2017.json");
-console.log(data2.length);
+
 
   async.eachSeries(data, iteratee, doAfter);
 
   function iteratee(tweet, callback){
-    console.log("===== Startted Iteratate")
+
+    console.log("===== Iterating Legacy Data ======")
     var input = {
       text: tweet.text,
       created_at: tweet.created_at
     }
-    console.log("INPUT");
+    console.log("Tweet to encode: ");
     console.log(input);
 
 
 
-      var convertedInput = JSON.stringify(input);
-    // console.log(typeof convertedInput);
-    // console.log(convertedInput)
+    var convertedInput = JSON.stringify(input);
+    const hash = sha256(convertedInput);
 
-    const hash = sha256(convertedInput); //input will go here
-    // console.log('hash = ', hash);
 
-    console.log("HASH: " + hash);
+    console.log("HASH of tweet content is: " + hash);
       hashClient.submitHashItem(hash, (err, result) =>{
         if(err) {
-            console.log("----Error in submit hash item:----- ");
+            console.log("----Error in submit hash item API call----- ");
             console.log(err);
             return next(err);
 
         } else {
 
-          console.log("-------Hash item accepted for encoding-----");
+          console.log("-------HASH item accepted for encoding-----");
 
           //save the original content with blockchain receipt id to retrieve later
           const newPendingReceipt = new pendingReceipt({
             originalContent: input,
             receiptId: result.receiptId
           });
-          console.log("NEW PENDING RECEIPT")
+          console.log("------New Pending Reciept Created-----")
           console.log(newPendingReceipt);
           newPendingReceipt.save((err, result) => {
             if (err) return next(err);
-             console.log("New pending receipt saved");
-             //<<<<<<<<<<So we have a receipt we're waiting for, so now we create a blocksub so
-             //We know when we can retrieve the receipt>>>>>>>>>>>>>>>>
+             console.log("------New Pending Reciept Saved-----")
 
-             console.log("===== Done Iteratate")
              callback();
            });
 
@@ -86,14 +81,10 @@ console.log(data2.length);
   function doAfter(){
 
        var parameters = {
-           "callbackUrl":  root + "http://mockbin.org/bin/a79679e6-3771-4ad8-b340-bb12d3865b4f" + destId ,
+           "callbackUrl":  root + destId ,
            "label": "Production"
        }
 
-
-      //if "resetBlockSub" is false it means the tweet is in the same block as
-      //the one before and the payload url doesn't change. Create block returns an error
-      //but that's not a biggy, we can optimize later.
 
        hashClient.createBlockSubscription(parameters, (err, result) =>{
          if(err) {
@@ -111,73 +102,7 @@ console.log(data2.length);
      }
 });
 
-router.get(`/check/:id`, (req,res,next) => {
-  //Latest block in the blockchain was published
-  //The latest block was published so we need to reset the payload url for the next tweet
-  resetBlockSub = true;
 
-
-  //for manually testing
-  // idArray = ["59caecaa01647049021fe404","59caecb2b8af0a2f6d757d57","59caecb901647049021fe405"];
-
-  //We want to go through all our pending receipts
-  //And fetch the receipts to store with the original content on our git and DB
-
-  pendingReceipt.find((err, results) => {
-    // console.log(results);
-
-      //Go through each pending receipt
-      results.forEach((result) => {
-
-        //Ask for receipt by id
-        hashClient.getReceipt(result.receiptId, (err, receipt) => {
-      if(err) {
-        console.log(err);
-        //There's some kind of preflight header problem here
-        return next(err);
-      } else {
-        console.log("Sucessfully recieved blockchain receipt");
-
-
-
-
-
-
-        //Now take receipt and save to db and then zip file for repo
-        var newTweetRecord = new tweetRecord({
-          receipt: receipt,
-          originalContent: result.originalContent
-        });
-
-        //note: mongo applies '/' where all the quotes are in the receipt to escape the character
-        //That has to be parsed out before being pushed to the git repo page
-        newTweetRecord.save((err, newTweet) => {
-          if (err){console.log(err)}
-          else{
-            console.log("it saved!");
-
-
-
-            //i think this might be a lil fucked up somehow try and break
-            //If the receipt saves ok remove it from pending
-            pendingReceipt.findByIdAndRemove(result._id, (err, pend) => {
-
-              console.log("it was removed!");
-
-          });
-          }
-        })
-
-      }
-      });
-      });
-
-
-
-res.render('index');
-  });
-
-})
 
 module.exports = router;
 //recepeint id
