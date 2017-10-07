@@ -13,7 +13,7 @@ const access_token = config.tierion.tokens.access_token;
 const refresh_token = config.tierion.tokens.refresh_token;
 const hashClient = new hashclient(access_token, refresh_token);
 
-router.get(`/check/:random`, (req,res,next) => {
+router.post(`/check`, (req,res,next) => {
   //Latest block in the blockchain was published
 
   //We want to go through all our pending receipts
@@ -79,7 +79,7 @@ router.get(`/check/:random`, (req,res,next) => {
       saveToFile(newTweets);
 
       //Create new subscription to next block
-      createNewBlockSub();
+      // createNewBlockSub();
     }
 
 
@@ -126,7 +126,7 @@ function createNewBlockSub(){
 
     //Just used this site for manual testing, will ultimatly be /check/:id route
     var parameters = {
-      "callbackUrl":  root + destId ,
+      "callbackUrl":  root + '/check/' ,
       "label": "Production"
     }
 
