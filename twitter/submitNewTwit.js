@@ -16,11 +16,6 @@ module.exports = (input) => {
     //This is what you need and how to combine it to verify the hash later
     //I think we just need text and exact twitter time, and hash that like so:
 
-    // var input = {
-    //   text: 'Ariel Deschapell',
-    //   created_at: 'Mon Sep 27 15:28:02 +0000 2017'
-    // } //example
-
 
     var convertedInput = JSON.stringify(input);
     // console.log(typeof convertedInput);
@@ -45,7 +40,6 @@ module.exports = (input) => {
           receiptId: result.receiptId
         });
 
-        //This doesn't have to be async i think?
         newPendingReceipt.save((err, result) => {
           if (err) return console.log(err);
            console.log("New pending receipt saved");

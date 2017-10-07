@@ -12,6 +12,7 @@ var a = module.exports = () => {
     if(tweet.user.id_str === config.userId ) {//Filtering retweets
       //Filter unnecesery fields
         tweet = {
+          screen_name    : tweet.user.screen_name,
           created_at: tweet.created_at,
           text      : tweet.text
         }

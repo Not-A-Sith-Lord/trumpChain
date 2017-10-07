@@ -59,11 +59,13 @@ router.post(`/check`, (req,res,next) => {
                   console.log("it was removed!");
 
                   //push to write file
-                  newTweets.push( newTweetRecord );
+                  newTweets.push( {
+                    receipt: newTweetRecord.receipt,
+                    originalContent: newTweetRecord.originalContent
+                  } );
 
                   callback();
               });
-              // callback();
               }
             })
           }
@@ -85,6 +87,6 @@ router.post(`/check`, (req,res,next) => {
   //End of Find
 
   });
-  //End of check/:random
+  //End of check
 
 module.exports = router;
