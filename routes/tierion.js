@@ -75,7 +75,7 @@ router.post(`/check`, (req,res,next) => {
 
       saveToFile(newTweets);
 
-      if(congif.github.remote_url) pushToRemoteRepo();
+      if(config.github.remote_url) pushToRemoteRepo();
 
       res.sendStatus(200);
     }
