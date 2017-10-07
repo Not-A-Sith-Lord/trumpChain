@@ -3,19 +3,12 @@ const router = express.Router();
 const pendingReceipt = require('../models/pendingReceipt');
 const tweetRecord = require('../models/tweetRecord');
 const async = require('async');
-
+const config = require('../config.js');
 const hashclient = require('hashapi-lib-node');
-//DANGER TOKENS:
-var access_token = "";
-var refresh_token = "";
-var hashClient = new hashclient(access_token, refresh_token);
+const access_token = config.tierion.tokens.access_token;
+const refresh_token = config.tierion.tokens.refresh_token;
+const hashClient = new hashclient(access_token, refresh_token);
 
-//This is to change the payload domain after each block, or tierion gives you an error
-var resetBlockSub = false;
-
-//Payload url info for blockSub. destId is changed by resetBlockSub.
-var root = "";
-var destId = "";
 
 const axios = require('axios');
 const sha256 = require('sha256');
@@ -32,15 +25,14 @@ var data2 = require("../parsedTweets/condensed_2017.json");
   async.eachSeries(data, iteratee, doAfter);
 
   function iteratee(tweet, callback){
-
     console.log("===== Iterating Legacy Data ======")
+
     var input = {
       text: tweet.text,
       created_at: tweet.created_at
     }
     console.log("Tweet to encode: ");
     console.log(input);
-
 
 
     var convertedInput = JSON.stringify(input);
@@ -65,12 +57,18 @@ var data2 = require("../parsedTweets/condensed_2017.json");
           });
           console.log("------New Pending Reciept Created-----")
           console.log(newPendingReceipt);
-          newPendingReceipt.save((err, result) => {
-            if (err) return next(err);
-             console.log("------New Pending Reciept Saved-----")
 
+          newPendingReceipt.save((err, result) => {
+            if (err) {
+              console.log(err);
+              return next(err);
+            } else {
+             console.log("------New Pending Reciept Saved-----")
              callback();
+           }
+
            });
+
 
         }
 

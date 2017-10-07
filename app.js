@@ -40,14 +40,13 @@ twitter();
 //Blockchain receipts payload destination
 const tierion = require('./routes/tierion');
 app.use('/', tierion.router);
+
+//Initialize first block subscription
 tierion.createNewBlockSub();
 
+//For manually triggering the encoding of legacy tweets in json file
 const legacyRetrieval = require('./routes/legacyTweets');
 app.use('/', legacyRetrieval);
-
-
-// const legacyExperiment = require('./routes/legacyExperiment');
-// app.use('/', legacyExperiment);
 
 
 // catch 404 and forward to error handler
