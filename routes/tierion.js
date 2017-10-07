@@ -3,9 +3,6 @@ const router = express.Router();
 const pendingReceipt = require('../models/pendingReceipt');
 const tweetRecord = require('../models/tweetRecord');
 const async = require('async');
-const fs = require('fs');
-const updateJsonFile = require('update-json-file');
-const push = require('git-push');
 
 const config = require('../config.js');
 
@@ -13,6 +10,9 @@ const hashclient = require('hashapi-lib-node');
 const access_token = config.tierion.tokens.access_token;
 const refresh_token = config.tierion.tokens.refresh_token;
 const hashClient = new hashclient(access_token, refresh_token);
+
+const saveToFile = require('../appFunctions/saveToFile.js');
+const pushToRemoteRepo = require('../appFunctions/pushToRemoteRepo.js');
 
 router.post(`/check`, (req,res,next) => {
   //Latest block in the blockchain was published
@@ -73,12 +73,11 @@ router.post(`/check`, (req,res,next) => {
     function doAfter(err){
       if(err) console.log(err);
 
-      console.log("Saving to file");
       saveToFile(newTweets);
+
       if(congif.github.remote_url) pushToRemoteRepo();
+
       res.sendStatus(200);
-      //Create new subscription to next block
-      // createNewBlockSub();
     }
 
 
@@ -88,55 +87,4 @@ router.post(`/check`, (req,res,next) => {
   });
   //End of check/:random
 
-function saveToFile( newTweets ){
-  //data is array of new tweets
-
-  //Generating filePath:
-  const year = new Date().getFullYear(); //Current year
-  const month = new Date().getMonth() + 1; //Current month
-  const filePath = `./tweetResults/tweets-${year}-${month}.json`; //1 file per month
-
-
-  //Create new file if it's not exist
-  if (!fs.existsSync(filePath)) {
-    const startingJSON =  '[]' ; //Simplest JSON for holding array
-
-    fs.writeFileSync(filePath, startingJSON , 'utf8', (err) => {
-      if (err) return console.log(err);
-      console.log(`The file was succesfully created! filePath = ${filePath}`);
-    });
-  }
-
-  //Add all new tweets to JSON file:
-  updateJsonFile(filePath, (data) => {
-    console.log(`Updating file. filePath = '${filePath}'`);
-
-    newTweets = newTweets.filter( tweet => !data.includes(tweet));//Filter dubplicates if there are any
-
-    //Combine old data(in file) with new data(new tweets):
-    data = [ ...data, ...newTweets ];
-    return data
-  });
-}
-
-function pushToRemoteRepo(){
-  const remoteRepo = {
-    name: 'trumpTweets',
-    url: congif.github.remote_url,
-    branch: 'master',
-  }
-  push('./tweetResults', remoteRepo, function() {
-    console.log(`New push to ${remoteRepo.url}`);
-  });
-}
-
-function createNewBlockSub(){
-  console.log('Creating new block subscription')
-  //Payload url info for blockSub. destId is changed by resetBlockSub.
-  var root = config.tierion.root;
-  var destId = Date.now();
-
-
-module.exports = {
-  router: router
-};
+module.exports = router;

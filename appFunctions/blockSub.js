@@ -1,5 +1,5 @@
 
-const config = require('./config.js').tierion;
+const config = require('../config.js').tierion;
 const hashclient = require('hashapi-lib-node');
 const access_token = config.tokens.access_token;
 const refresh_token = config.tokens.refresh_token;
@@ -35,4 +35,3 @@ module.exports = (input) => {
         }
     });
 }
-

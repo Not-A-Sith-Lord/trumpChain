@@ -17,9 +17,9 @@ module.exports = {
       refresh_token : ''
     },
     root: 'http://204013c9.ngrok.io'
-  }
+  },
 
   github: {
-    remote_url: 'https://github.com/oleh-kolinko/trumpTweets.git'; //Repo that all new tweets will be pushed
+    remote_url: 'https://github.com/oleh-kolinko/trumpTweets.git' //Repo that all new tweets will be pushed
   }
 };

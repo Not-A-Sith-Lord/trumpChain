@@ -7,7 +7,7 @@ const bodyParser   = require('body-parser');
 const layouts      = require('express-ejs-layouts');
 const mongoose     = require('mongoose');
 const cors         = require('cors');
-const blockSub     = require('./blockSub');
+const blockSub     = require('./appFunctions/blockSub');
 const app = express();
 
 app.use(cors());// Enable cors for all domains
@@ -39,7 +39,7 @@ twitter();
 
 //Blockchain receipts payload destination
 const tierion = require('./routes/tierion');
-app.use('/', tierion.router);
+app.use('/', tierion);
 
 //Initialize first block subscription
 blockSub();
