@@ -6,9 +6,16 @@ const cookieParser = require('cookie-parser');
 const bodyParser   = require('body-parser');
 const layouts      = require('express-ejs-layouts');
 const mongoose     = require('mongoose');
+const cors         = require('cors');
 
 const app = express();
-mongoose.createConnection('mongodb://localhost/trumpChain');
+
+app.use(cors());// Enable cors for all domains
+
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://localhost/trumpChain', {
+  useMongoClient: true,
+});
 
 
 // view engine setup

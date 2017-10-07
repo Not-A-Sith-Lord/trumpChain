@@ -7,8 +7,8 @@ module.exports = {
       access_token:         '',
       access_token_secret:  ''
     },
-    // userId: '' //TEST account (twitter account ID, will be reading tweets from this user)
-    userId: '25073877'       //TRUMP account (twitter account ID, will be reading tweets from this user)
+    userId: '912871553133662208' //TEST account (twitter account ID, will be reading tweets from this user)
+    // userId: '25073877'       //TRUMP account (twitter account ID, will be reading tweets from this user)
   },
 
   tierion: {
@@ -16,7 +16,7 @@ module.exports = {
       access_token : "",
       refresh_token : ''
     },
-    root: ''
+    root: 'http://264af756.ngrok.io'
   }
 
 };

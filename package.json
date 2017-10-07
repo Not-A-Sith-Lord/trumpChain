@@ -10,6 +10,7 @@
     "axios": "^0.16.2",
     "body-parser": "~1.16.0",
     "cookie-parser": "~1.4.3",
+    "cors": "^2.8.4",
     "debug": "~2.6.0",
     "download-git-repo": "^1.0.1",
     "ejs": "~2.5.5",
