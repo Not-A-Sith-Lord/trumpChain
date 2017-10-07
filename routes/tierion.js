@@ -25,42 +25,42 @@ router.post(`/check`, (req,res,next) => {
     let newTweets = []; //All new tweets
 
 
-    async.eachSeries(results, iteratee, doAfter);  //Go through each pending receipt
+    async.eachSeries(results, iteratee, doAfter);  //Go through each "Pending Receipt"
 
     function iteratee(result, callback) {
 
-        //Ask for receipt by id
+        //Request receipt from flient using receipt ID stored in the the "Pending Receipt"
         hashClient.getReceipt(result.receiptId, (err, receipt) => {
           if(err) {
             console.log(err);
-            //There's some kind of preflight header problem here
             return next(err);
           } else {
                 console.log("Sucessfully recieved blockchain receipt");
 
 
-            //Now take receipt and save to db and then zip file for repo
+            //Now take blockchain receipt and create a "Tweet Record" by combining the receipt and original content in an object
             var newTweetRecord = new tweetRecord({
               receipt: receipt,
               originalContent: result.originalContent
             });
 
-            newTweets.push( result.originalContent );
 
-            //note: mongo applies '/' where all the quotes are in the receipt to escape the character
-            //That has to be parsed out before being pushed to the git repo page
+            //Save the new Tweet Record
             newTweetRecord.save((err, newTweet) => {
               if (err){console.log(err)}
               else{
                 console.log("it saved!");
 
 
-              // i think this might be a lil fucked up somehow try and break
-              // If the receipt saves ok remove it from pending
+
+              //Since the Tweet Record is sucessfully saved, delete its corresponding pendingReceipt
                 pendingReceipt.findByIdAndRemove(result._id, (err, pend) => {
                   if(err) return console.log(err);
-
                   console.log("it was removed!");
+
+                  //push to write file
+                  newTweets.push( newTweetRecord );
+
                   callback();
               });
               // callback();
@@ -73,7 +73,7 @@ router.post(`/check`, (req,res,next) => {
     function doAfter(err){
       if(err) console.log(err);
 
-
+      console.log("Saving to file");
       saveToFile(newTweets);
       if(congif.github.remote_url) pushToRemoteRepo();
       res.sendStatus(200);
@@ -136,35 +136,7 @@ function createNewBlockSub(){
   var root = config.tierion.root;
   var destId = Date.now();
 
-    //Just used this site for manual testing, will ultimatly be /check/:id route
-    var parameters = {
-      "callbackUrl":  root + '/check/' ,
-      "label": "Production"
-    }
-
-
-   //if "resetBlockSub" is false it means the tweet is in the same block as
-   //the one before and the payload url doesn't change. Create block returns an error
-   //but that's not a biggy, we can optimize later.
-
-    hashClient.createBlockSubscription(parameters, (err, result) =>{
-        if(err) {
-            console.log("Error in create block subscription: ");
-            console.log(err);
-
-        } else {
-            console.log(result);
-
-            //If it's all good it's all good then it's all good
-            // res.render('index');
-        }
-    });
-}
-
-
-
 
 module.exports = {
-  router: router,
-  createNewBlockSub: createNewBlockSub
+  router: router
 };

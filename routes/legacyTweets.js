@@ -18,14 +18,17 @@ router.get('/legacy', (req,res,next) => {
 
 //To encode legacy tweet data you have to manually link the source in json.
 //And simply trigger this route
-var data = require("../parsedTweets/test.json");
-var data2 = require("../parsedTweets/condensed_2017.json");
 
+var data = require("../parsedTweets/condensed_2017 4.json");
 
+var count = 0;
   async.eachSeries(data, iteratee, doAfter);
 
   function iteratee(tweet, callback){
     console.log("===== Iterating Legacy Data ======")
+    count++;
+    console.log("NUMBER OF ITERATIONS: " + count);
+
 
     var input = {
       text: tweet.text,
@@ -78,25 +81,10 @@ var data2 = require("../parsedTweets/condensed_2017.json");
 
   function doAfter(){
 
-       var parameters = {
-           "callbackUrl":  root + destId ,
-           "label": "Production"
-       }
+console.log("Successfully processed all legacy tweets!!!!!");
 
 
-       hashClient.createBlockSubscription(parameters, (err, result) =>{
-         if(err) {
-           console.log("Error in create block subscription: ");
-           console.log(err);
 
-           return next(err);
-         } else {
-           console.log(result);
-
-           //If it's all good it's all good then it's all good
-           res.render('index');
-         }
-       });
      }
 });
 
