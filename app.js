@@ -7,7 +7,7 @@ const bodyParser   = require('body-parser');
 const layouts      = require('express-ejs-layouts');
 const mongoose     = require('mongoose');
 const cors         = require('cors');
-
+const blockSub     = require('./blockSub');
 const app = express();
 
 app.use(cors());// Enable cors for all domains
@@ -42,7 +42,7 @@ const tierion = require('./routes/tierion');
 app.use('/', tierion.router);
 
 //Initialize first block subscription
-tierion.createNewBlockSub();
+blockSub();
 
 //For manually triggering the encoding of legacy tweets in json file
 const legacyRetrieval = require('./routes/legacyTweets');

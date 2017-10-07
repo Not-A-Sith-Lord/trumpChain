@@ -22,7 +22,7 @@ var data = require("../parsedTweets/test.json");
 var data2 = require("../parsedTweets/condensed_2017.json");
 
 
-  async.eachSeries(data, iteratee, doAfter);
+  async.eachSeries(data2, iteratee, doAfter);
 
   function iteratee(tweet, callback){
     console.log("===== Iterating Legacy Data ======")
@@ -78,25 +78,10 @@ var data2 = require("../parsedTweets/condensed_2017.json");
 
   function doAfter(){
 
-       var parameters = {
-           "callbackUrl":  root + destId ,
-           "label": "Production"
-       }
+console.log("Successfully processed all legacy tweets!!!!!");
 
 
-       hashClient.createBlockSubscription(parameters, (err, result) =>{
-         if(err) {
-           console.log("Error in create block subscription: ");
-           console.log(err);
 
-           return next(err);
-         } else {
-           console.log(result);
-
-           //If it's all good it's all good then it's all good
-           res.render('index');
-         }
-       });
      }
 });
 

@@ -14,9 +14,9 @@ module.exports = {
   tierion: {
     tokens: {
       access_token : "",
-      refresh_token : ''
+      refresh_token : 'b'
     },
-    root: 'http://264af756.ngrok.io'
+    root: 'http://f9e4dc8c.ngrok.io'
   }
 
 };

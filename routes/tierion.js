@@ -75,8 +75,9 @@ router.post(`/check`, (req,res,next) => {
     function doAfter(err){
       if(err) console.log(err);
 
-
+      console.log("Saving to file");
       saveToFile(newTweets);
+      res.sendStatus(200);
 
       //Create new subscription to next block
       // createNewBlockSub();
@@ -89,7 +90,7 @@ router.post(`/check`, (req,res,next) => {
   });
   //End of check/:random
 
-function saveToFile( data ){
+function saveToFile( newTweets ){
   //data is array of new tweets
 
   //Generating filePath:
@@ -118,41 +119,8 @@ function saveToFile( data ){
   });
 }
 
-function createNewBlockSub(){
-  console.log('Creating new block subscription')
-  //Payload url info for blockSub. destId is changed by resetBlockSub.
-  var root = config.tierion.root;
-  var destId = Date.now();
-
-    //Just used this site for manual testing, will ultimatly be /check/:id route
-    var parameters = {
-      "callbackUrl":  root + '/check/' ,
-      "label": "Production"
-    }
-
-
-   //if "resetBlockSub" is false it means the tweet is in the same block as
-   //the one before and the payload url doesn't change. Create block returns an error
-   //but that's not a biggy, we can optimize later.
-
-    hashClient.createBlockSubscription(parameters, (err, result) =>{
-        if(err) {
-            console.log("Error in create block subscription: ");
-            console.log(err);
-
-        } else {
-            console.log(result);
-
-            //If it's all good it's all good then it's all good
-            // res.render('index');
-        }
-    });
-}
-
-
 
 
 module.exports = {
-  router: router,
-  createNewBlockSub: createNewBlockSub
+  router: router
 };
