@@ -5,6 +5,7 @@ const tweetRecord = require('../models/tweetRecord');
 const async = require('async');
 const fs = require('fs');
 const updateJsonFile = require('update-json-file');
+const push = require('git-push');
 
 const config = require('../config.js');
 
@@ -69,15 +70,13 @@ router.post(`/check`, (req,res,next) => {
         })
       }
 
-
-
-
     function doAfter(err){
       if(err) console.log(err);
 
 
       saveToFile(newTweets);
-
+      if(congif.github.remote_url) pushToRemoteRepo();
+      res.sendStatus(200);
       //Create new subscription to next block
       // createNewBlockSub();
     }
@@ -89,7 +88,7 @@ router.post(`/check`, (req,res,next) => {
   });
   //End of check/:random
 
-function saveToFile( data ){
+function saveToFile( newTweets ){
   //data is array of new tweets
 
   //Generating filePath:
@@ -112,9 +111,22 @@ function saveToFile( data ){
   updateJsonFile(filePath, (data) => {
     console.log(`Updating file. filePath = '${filePath}'`);
 
+    newTweets = newTweets.filter( tweet => !data.includes(tweet));//Filter dubplicates if there are any
+
     //Combine old data(in file) with new data(new tweets):
     data = [ ...data, ...newTweets ];
     return data
+  });
+}
+
+function pushToRemoteRepo(){
+  const remoteRepo = {
+    name: 'trumpTweets',
+    url: congif.github.remote_url,
+    branch: 'master',
+  }
+  push('./tweetResults', remoteRepo, function() {
+    console.log(`New push to ${remoteRepo.url}`);
   });
 }
 

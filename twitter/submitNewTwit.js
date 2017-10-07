@@ -47,7 +47,7 @@ module.exports = (input) => {
 
         //This doesn't have to be async i think?
         newPendingReceipt.save((err, result) => {
-          if (err) return next(err);
+          if (err) return console.log(err);
            console.log("New pending receipt saved");
 
 
