@@ -16,7 +16,7 @@ module.exports = {
       access_token : "",
       refresh_token : ''
     },
-    root: 'http://204013c9.ngrok.io'
+    root: 'https://tweet-chain.herokuapp.com'
   },
 
   github: {

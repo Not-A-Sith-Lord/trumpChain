@@ -8,12 +8,14 @@ const layouts      = require('express-ejs-layouts');
 const mongoose     = require('mongoose');
 const cors         = require('cors');
 const blockSub     = require('./appFunctions/blockSub');
+const dotenv       = require('dotenv');
+dotenv.config();
 const app = express();
 
 app.use(cors());// Enable cors for all domains
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/trumpChain', {
+mongoose.connect(process.env.MONGODB_URI, {
   useMongoClient: true,
 });
 
