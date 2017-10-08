@@ -60,7 +60,7 @@ router.post(`/check`, (req,res,next) => {
 
                   //push to write file
                   newTweets.push( {
-                    receipt: newTweetRecord.receipt,
+                    receipt: receipt,
                     originalContent: newTweetRecord.originalContent
                   } );
 
