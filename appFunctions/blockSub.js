@@ -13,7 +13,7 @@ module.exports = (input) => {
 
     //Just used this site for manual testing, will ultimatly be /check/:id route
     var parameters = {
-      "callbackUrl":  root + '/check/' ,
+      "callbackUrl":  root + 'check/' ,
       "label": "Production"
     }
 
