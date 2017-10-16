@@ -12,8 +12,8 @@ module.exports =  function saveToFile( newTweets ){
     const filePath = `./tweetResults/tweets-${year}-${month}.txt`; //1 file per month
 
     const textToWrite =
-      'receipt          =' + stringify(tweetRecord.receipt.receipt) + '\n' +
-      'originalContent  =' + stringify(tweetRecord) + '\n\n';
+      'receipt =' + stringify(tweetRecord.receipt.receipt) + '\n' +
+      'originalContent =' + stringify(tweetRecord.originalContent) + '\n\n';
 
     fs.appendFileSync(filePath, textToWrite );
     console.log(`Added new tweet to file = '${filePath}', tweet text = ${tweetRecord.originalContent.text}`);
