@@ -16,7 +16,7 @@ module.exports =  function saveToFile( newTweets ){
       'originalContent  =' + stringify(tweetRecord) + '\n\n';
 
     fs.appendFileSync(filePath, textToWrite );
-    console.log(`Added new tweet to file = '${filePath}', tweet text = ${originalContent.text}`);
+    console.log(`Added new tweet to file = '${filePath}', tweet text = ${tweetRecord.originalContent.text}`);
 
   })
 }
