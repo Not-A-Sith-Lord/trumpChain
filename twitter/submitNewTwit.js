@@ -1,5 +1,6 @@
 const sha256 = require('sha256');
 const pendingReceipt = require('../models/pendingReceipt');
+const stringify       = require('json-stable-stringify');
 
 const config = require('../config.js').tierion;
 const hashclient = require('hashapi-lib-node');
@@ -17,12 +18,12 @@ module.exports = (input) => {
     //I think we just need text and exact twitter time, and hash that like so:
 
 
-    var convertedInput = JSON.stringify(input);
-    // console.log(typeof convertedInput);
-    // console.log(convertedInput)
+    const originalContent = stringify(input);
 
-    const hash = sha256(convertedInput); //input will go here
-    // console.log('hash = ', hash);
+    const hash = sha256(originalContent); //input will go here
+    console.log(`Starting to hash: `)
+    console.log(`originalContent = ${originalContent}`)
+    console.log(`Hash = ${hash}`);
 
 
 

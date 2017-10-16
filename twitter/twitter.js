@@ -12,10 +12,11 @@ var a = module.exports = () => {
     if(tweet.user.id_str === config.userId ) {//Filtering retweets
       //Filter unnecesery fields
         tweet = {
-          screen_name    : tweet.user.screen_name,
+          text      : tweet.text,
           created_at: tweet.created_at,
-          text      : tweet.text
+          screen_name    : tweet.user.screen_name
         }
+        
         console.log(`TwitterAPI: Yeah, we got new tweet with text: '${tweet.text}'`);
         submitNewTwit(tweet);
     }
