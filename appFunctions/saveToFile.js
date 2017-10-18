@@ -23,40 +23,43 @@ module.exports =  function saveToFile( newTweets ){
     });
   }
 
-  //Add all new tweets to JSON file:
-  updateJsonFile(filePath, (data) => {
-    console.log(`Updating file. filePath = '${filePath}'`);
+  newTweets = newTweets.filter( tweet => !data.includes(tweet));//Filter dubplicates if there are any
+  let fixedTweets = [];
 
-    newTweets = newTweets.filter( tweet => !data.includes(tweet));//Filter dubplicates if there are any
-    let fixedTweets = [];
+  async.eachSeries(newTweets, iteratee, doAfter);
 
-    async.eachSeries(newTweets, iteratee, doAfter);
-
-      function iteratee(tweet, callback){
-        console.log("Original tweet is......");
-        console.log(tweet);
-        fixedTweet = {
-          receipt: tweet.receipt,
-          originalContent: stringify(tweet.originalContent)
-        }
-        console.log("Fixed tweet is......");
-        console.log(fixedTweet);
-        fixedTweets.push(fixedTweet);
-        callback();
-
+    function iteratee(tweet, callback){
+      console.log("Original tweet is......");
+      console.log(tweet);
+      let fixedTweet = {
+        receipt: tweet.receipt,
+        originalContent: stringify(tweet.originalContent)
       }
+      console.log("Fixed tweet is......");
+      console.log(fixedTweet);
+      fixedTweets.push(fixedTweet);
+      callback();
 
-      function doAfter(err){
-        if (err){ console.log(err)}
-          console.log(fixedTweets);
-        //Combine old data(in file) with new data(new tweets):
+    }
+
+    function doAfter(err){
+      if (err){ console.log(err)}
+        console.log(fixedTweets);
+      //Combine old data(in file) with new data(new tweets):
+      updateJsonFile(filePath, (data) => {
+        console.log(`Updating file. filePath = '${filePath}'`);
+
         data = [ ...data, ...fixedTweets ];
         return data
 
-      }
 
 
+      });
 
-  });
+    }
+
+
+  //Add all new tweets to JSON file:
+
 });
 }
