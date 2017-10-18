@@ -33,11 +33,14 @@ module.exports =  function saveToFile( newTweets ){
     async.eachSeries(newTweets, iteratee, doAfter);
 
       function iteratee(tweet, callback){
+        console.log("Original tweet is......");
+        console.log(tweet);
         fixedTweet = {
           receipt: tweet.receipt,
           originalContent: stringify(tweet.originalContent)
         }
-
+        console.log("Fixed tweet is......");
+        console.log(fixedTweet);
         fixedTweets.push(fixedTweet);
         callback();
 
@@ -45,7 +48,7 @@ module.exports =  function saveToFile( newTweets ){
 
       function doAfter(err){
         if (err){ console.log(err)}
-
+          console.log(fixedTweets);
         //Combine old data(in file) with new data(new tweets):
         data = [ ...data, ...fixedTweets ];
         return data

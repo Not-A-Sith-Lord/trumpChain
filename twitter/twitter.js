@@ -15,8 +15,9 @@ var a = module.exports = () => {
           text      : tweet.text,
           created_at: tweet.created_at,
           screen_name    : tweet.user.screen_name
+
+
         }
-        
         console.log(`TwitterAPI: Yeah, we got new tweet with text: '${tweet.text}'`);
         submitNewTwit(tweet);
     }
