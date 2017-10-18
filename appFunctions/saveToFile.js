@@ -23,7 +23,7 @@ module.exports =  function saveToFile( newTweets ){
     });
   }
 
-  newTweets = newTweets.filter( tweet => !data.includes(tweet));//Filter dubplicates if there are any
+  //Filter dubplicates if there are any
   let fixedTweets = [];
 
   async.eachSeries(newTweets, iteratee, doAfter);
@@ -48,6 +48,8 @@ module.exports =  function saveToFile( newTweets ){
       //Combine old data(in file) with new data(new tweets):
       updateJsonFile(filePath, (data) => {
         console.log(`Updating file. filePath = '${filePath}'`);
+        
+        fixedTweets = fixedTweets.filter( tweet => !data.includes(tweet));
 
         data = [ ...data, ...fixedTweets ];
         return data
