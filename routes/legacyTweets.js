@@ -9,7 +9,7 @@ const hashclient = require('hashapi-lib-node');
 const access_token = config.tierion.tokens.access_token;
 const refresh_token = config.tierion.tokens.refresh_token;
 const hashClient = new hashclient(access_token, refresh_token);
-
+const stringify       = require('json-stable-stringify');
 
 const axios = require('axios');
 const sha256 = require('sha256');
@@ -20,7 +20,7 @@ router.get('/legacy', (req,res,next) => {
 //To encode legacy tweet data you have to manually link the source in json.
 //And simply trigger this route
 
-var data = require("../parsedTweets/condensed_2017 4.json");
+var data = require("../parsedTweets/condensed_2017 5.json");
 
 var count = 0;
   async.eachSeries(data, iteratee, doAfter);
@@ -39,7 +39,7 @@ var count = 0;
     console.log(input);
 
 
-    var convertedInput = JSON.stringify(input);
+    var convertedInput = stringify(input);
     const hash = sha256(convertedInput);
 
 
