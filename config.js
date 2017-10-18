@@ -13,9 +13,9 @@ module.exports = {
 
   tierion: {
     tokens: {
-      access_token : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjU5Y2FiZmE0MWFiM2FlMjliNzk5YzNkYiIsInJscyI6MTAwLCJybGgiOjEwMDAsImlzQWRtaW4iOmZhbHNlLCJpYXQiOjE1MDY0NjM1NjIsImV4cCI6MTUwNjQ2NzE2MiwianRpIjoiMWQ4YjVkNmI5YjdmNDVmZTc0YTJkYTY4MGQ2Y2U1ODJkMDcyZjU4NyJ9.PxQwHYfIbN9PuDrSziJY1uKYjOdGZnQ37JXp4K9MVew",
-      refresh_token : 'b18d914f8b3a6753e57e2eabb1c819da5ccfee6d'
-    },
+    access_token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjU5ZGVjNjgxNTkwZGFhM2Q5ZWZmNGI4YSIsInJscyI6MTAwLCJybGgiOjEwMDAsImlzQWRtaW4iOmZhbHNlLCJpYXQiOjE1MDgyOTY0MTEsImV4cCI6MTUwODMwMDAxMSwianRpIjoiMjNmOGM0NmYwOWY4Njk4ZWE2ZTVlOWEzMTkzYTZiODI4ZmQwMzBlNSJ9.aFPENvii8KUGbHiXbfd4FU6Yk9y0lIar9fCZw1OgvKU",
+    refresh_token: "af5a2bd1468504181fe4269bfc33ef2f39a5597a"
+},
     root: 'http://ec2-13-58-126-113.us-east-2.compute.amazonaws.com:3000/'
   },
 
