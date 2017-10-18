@@ -1,7 +1,6 @@
 const fs              = require('fs');
 const updateJsonFile  = require('update-json-file');
 const stringify       = require('json-stable-stringify');
-const async           = require('async');
 
 module.exports =  function saveToFile( newTweets ){
 
@@ -10,58 +9,17 @@ module.exports =  function saveToFile( newTweets ){
     //Generating filePath:
     const year = new Date(tweetRecord.originalContent.created_at).getFullYear(); //Current year
     const month = new Date(tweetRecord.originalContent.created_at).getMonth() + 1; //Current month
-    const filePath = `./tweetResults/tweets-${year}-${month}.json`; //1 file per month
+    const date = new Date(tweetRecord.originalContent.created_at).getDate();
+    const filePath = `./tweetResults/tweets-${year}-${month}.txt`; //1 file per month
 
+    const textToWrite =
+      'Date =' + date +
+      'receipt =' + stringify(tweetRecord.receipt.receipt) + '\n' +
+      'originalContent =' + stringify(tweetRecord.originalContent) + '\n' + '------------------------------------------------------' + '\n';
 
-  //Create new file if it's not exist
-  if (!fs.existsSync(filePath)) {
-    const startingJSON =  '[]' ; //Simplest JSON for holding array
+    fs.appendFileSync(filePath, textToWrite );
+    console.log(`Added new tweet to file = '${filePath}', tweet text = ${tweetRecord.originalContent.text}`);
 
-    fs.writeFileSync(filePath, startingJSON , 'utf8', (err) => {
-      if (err) return console.log(err);
-      console.log(`The file was succesfully created! filePath = ${filePath}`);
-    });
-  }
-
-  //Filter dubplicates if there are any
-  let fixedTweets = [];
-
-  async.eachSeries(newTweets, iteratee, doAfter);
-
-    function iteratee(tweet, callback){
-      console.log("Original tweet is......");
-      console.log(tweet);
-      let fixedTweet = {
-        receipt: tweet.receipt,
-        originalContent: stringify(tweet.originalContent)
-      }
-      console.log("Fixed tweet is......");
-      console.log(fixedTweet);
-      fixedTweets.push(fixedTweet);
-      callback();
-
-    }
-
-    function doAfter(err){
-      if (err){ console.log(err)}
-        console.log(fixedTweets);
-      //Combine old data(in file) with new data(new tweets):
-      updateJsonFile(filePath, (data) => {
-        console.log(`Updating file. filePath = '${filePath}'`);
-        
-        fixedTweets = fixedTweets.filter( tweet => !data.includes(tweet));
-
-        data = [ ...data, ...fixedTweets ];
-        return data
-
-
-
-      });
-
-    }
-
-
-  //Add all new tweets to JSON file:
-
-});
+  })
 }
+
