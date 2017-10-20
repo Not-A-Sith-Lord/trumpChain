@@ -4,7 +4,10 @@ const stringify       = require('json-stable-stringify');
 
 module.exports =  function saveToFile( newTweets ){
 
+  newTweets.sort((a,b)=> new Date(b.originalContent.created_at) - new Date(a.originalContent.created_at));
   newTweets.forEach(tweetRecord => {
+
+
 
     //Generating filePath:
     const year = new Date(tweetRecord.originalContent.created_at).getFullYear(); //Current year
@@ -13,9 +16,9 @@ module.exports =  function saveToFile( newTweets ){
     const filePath = `./tweetResults/tweets-${year}-${month}.txt`; //1 file per month
 
     const textToWrite =
-      'Date =' + date +
-      'receipt =' + stringify(tweetRecord.receipt.receipt) + '\n' +
-      'originalContent =' + stringify(tweetRecord.originalContent) + '\n' + '------------------------------------------------------' + '\n';
+      'Date: ' + date + '/n' +
+      'receipt: ' + tweetRecord.receipt.receipt + '\n' +
+      'originalContent: ' + stringify(tweetRecord.originalContent) + '\n' + '------------------------------------------------------' + '\n';
 
     fs.appendFileSync(filePath, textToWrite );
     console.log(`Added new tweet to file = '${filePath}', tweet text = ${tweetRecord.originalContent.text}`);
