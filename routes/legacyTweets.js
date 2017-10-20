@@ -20,7 +20,7 @@ router.get('/legacy', (req,res,next) => {
 //To encode legacy tweet data you have to manually link the source in json.
 //And simply trigger this route
 
-var data = require("../parsedTweets/master_2017 4.json");
+var data = require("../parsedTweets/condensed_2017 5.json");
 
 var count = 0;
   async.eachSeries(data, iteratee, doAfter);
